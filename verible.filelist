@@ -1,0 +1,8 @@
+./rtl/alu_decoder.sv
+./rtl/wave_pkg.sv
+./rtl/data_memory.sv
+./rtl/imm_gen.sv
+./rtl/instr_memory.sv
+./rtl/main_decoder.sv
+./rtl/reg_file.sv
+./rtl/wavecore_top.sv

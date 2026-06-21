@@ -1,0 +1,20 @@
+# Waveforms
+*.vcd
+*.fst
+*.fst.hier
+*.ghw
+*.wlf
+*.fsdb
+*.vpd
+obj_dir/
+.pytest_cache/
+*.log
+*.vvp
+*.png
+.claude/
+sim/*
+notes.txt
+.vscode/
+*__pycache__
+sim_build
+results.xml
