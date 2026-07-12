@@ -18,7 +18,8 @@ async def test_write(dut) :
         index = random.randint(0,31)
         value = random.randint(0, 0xFFFFFFFF)
 
-        ref_regfile[index] = value
+        if index != 0 :
+            ref_regfile[index] = value
 
         await RisingEdge(dut.clk_i)
         dut.w_addr_i.value = index
@@ -27,7 +28,7 @@ async def test_write(dut) :
         await RisingEdge(dut.clk_i)
         
         if (i % 1000 == 0) :
-            for r in range(1,32) :
+            for r in range(0,32) :
                 await RisingEdge(dut.clk_i)
                 dut.r1_addr_i.value = r
                 await ReadOnly()
@@ -39,6 +40,8 @@ async def test_write(dut) :
         
 
 async def test_reset(dut) :
+    ref_regfile = [0] * 32
+
     await FallingEdge(dut.clk_i)
     dut.rst_ni.value = 0
     await ClockCycles(dut.clk_i, 2)
@@ -52,6 +55,8 @@ async def test_reset(dut) :
         await ReadOnly()
         assert dut.r1_data_o.value == 0, f"reset did not work,on port 1, regfile{i} = {dut.r1_data_o.value}"
         assert dut.r2_data_o.value == 0, f"reset did not work on port 2, regfile{i} = {dut.r2_data_o.value}"
+
+
         
 async def test_zero(dut) :
     await FallingEdge(dut.clk_i)
@@ -98,7 +103,31 @@ async def test_read_ports(dut) :
                 f"expected p1 = {ref_regfile[r1]}, p2 = {ref_regfile[r2]}"
             )
             
+
+
+async def test_not_write(dut) :
+    await RisingEdge(dut.clk_i)
+    dut.w_en_i.value = 0
+    await RisingEdge(dut.clk_i)
+
+    for i in range(20) :
+        index = random.randint(0,31)
+        value = random.randint(0, 0xFFFFFFFF)
+
+        await RisingEdge(dut.clk_i)
+        dut.w_addr_i.value = index
+        dut.w_data_i.value = value
+        
+        await RisingEdge(dut.clk_i)
+        
+    for r in range(0,32) :
+        await RisingEdge(dut.clk_i)
+        dut.r1_addr_i.value = r
+        await ReadOnly()
+   
+        assert dut.r1_data_o.value == ref_regfile[r], f"r{r} expected {ref_regfile[r]}, got {dut.r1_data_o.value}."
     
+    await RisingEdge(dut.clk_i)
 
 @cocotb.test()
 async def test(dut) :
@@ -117,11 +146,15 @@ async def test(dut) :
     await ClockCycles(dut.clk_i, 1)
 
     await test_write(dut)
+
+    await test_not_write(dut)
+
+    await test_zero(dut)
         
     await test_read_ports(dut)
 
     await test_reset(dut)
 
-    await test_zero(dut)
+
 
 
