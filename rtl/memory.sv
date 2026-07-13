@@ -11,7 +11,7 @@ module memory #(
   input wire logic [3:0] byte_enable_i,
 
   input wire logic [Aw-1:0] addr_i,
-  input wire logic [31:0] w_data_i,
+  input wire logic [31:0] data_i,
 
   output logic [31:0] data_o
 );
@@ -30,7 +30,7 @@ module memory #(
     if (w_en_i) begin 
       for (int i = 0; i < 4; i++) begin 
         if (byte_enable_i[i]) begin
-          mem[addr_i][(i * 8)+:8] <= w_data_i[(i*8)+:8];
+          mem[addr_i][(i * 8)+:8] <= data_i[(i*8)+:8];
         end
       end
     end
