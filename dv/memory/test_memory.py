@@ -8,7 +8,7 @@ log = logging.getLogger("tb.memory")
 log.setLevel(logging.INFO)
 
 model = {}
-numWords = 128
+numWords = 1024
 init_path = "init_mem.hex"
 
 def apply_be(old, new, byte_mask) :
@@ -25,20 +25,22 @@ def apply_be(old, new, byte_mask) :
 async def check_init(dut) :
     with open(init_path, "r") as file:    
         for index, value in enumerate (file) : 
+            
             await RisingEdge(dut.clk_i)
+            index *= 4 #convert word -> byte address
             dut.addr_i.value = index
             await ReadOnly()
 
             expected = int(value,16)
             got = int(dut.data_o.value)
+            model[index/4] = got
         
-            model[index] = got
             assert expected == got, f"init failed. exp {hex(expected)}, got {hex(got)}"
 
         await RisingEdge(dut.clk_i)        
 
 async def test_write(dut, byte_mask) :
-    dut.w_en_i.value = 1
+    dut.we_i.value = 1
     dut.be_i.value = byte_mask
 
     for addr in range (numWords) :
@@ -47,16 +49,18 @@ async def test_write(dut, byte_mask) :
         old = model.get(addr, 0)
         model[addr] = apply_be(old, rand_val, byte_mask)
 
+        addr *= 4 #convert word address into byte address
         dut.addr_i.value = addr
         dut.data_i.value = (rand_val)
         await ClockCycles(dut.clk_i, 2)
 
-    dut.w_en_i.value = 0
+    dut.we_i.value = 0
     await RisingEdge(dut.clk_i)
 
     #read and compare
     for addr in range (numWords) :
-        expected = model.get(addr, "XXX")
+        expected = model.get(addr, 0)
+        addr *= 4 #convert word address into byte address
         dut.addr_i.value = addr
         await ClockCycles(dut.clk_i, 2)
         read_value = dut.data_o.value
@@ -64,12 +68,13 @@ async def test_write(dut, byte_mask) :
         assert expected == read_value, f"mem[{addr}] expected {hex(expected)} got {hex(read_value)}"
 
 async def test_not_write(dut, byte_mask) :
-        dut.w_en_i.value = 0
+        dut.we_i.value = 0
 
         dut.be_i.value = byte_mask
 
         #1. write the init values into mem
         for addr in range(numWords):
+            addr *= 4 #convert word -> byte address
             dut.addr_i.value = addr
             dut.data_i.value = 0
             await ClockCycles(dut.clk_i, 2)
@@ -78,7 +83,8 @@ async def test_not_write(dut, byte_mask) :
 
         #2. read the values from mem and compare   
         for addr in range (numWords):
-            expected = model.get(addr, "XXX")
+            expected = model.get(addr, 0)
+            addr *= 4 #convert word -> byte address
             dut.addr_i.value = addr
             await ClockCycles(dut.clk_i, 2)
             read_value = dut.data_o.value
@@ -91,7 +97,7 @@ async def test(dut) :
     clk.start()
 
     byte_mask = 0b1111
-    dut.w_en_i.value = 0
+    dut.we_i.value = 0
     dut.data_i.value = 0
     dut.addr_i.value = 0
     
@@ -104,5 +110,5 @@ async def test(dut) :
     await test_write(dut, byte_mask)
     await test_not_write(dut, byte_mask)
 
-    byte_mask = 0b0011
-    await test_write(dut, byte_mask)
+    for byte_mask in range (16):
+        await test_write(dut, byte_mask)
