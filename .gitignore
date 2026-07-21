@@ -1,4 +1,3 @@
-# Waveforms
 *.vcd
 *.fst
 *.fst.hier
@@ -15,6 +14,8 @@ obj_dir/
 sim/*
 notes.txt
 .vscode/
+lint.f
+verible.filelist
 *__pycache__
 sim_build
 results.xml
