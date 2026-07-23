@@ -1,5 +1,6 @@
 `default_nettype none
 
+//byte addressable memory
 module memory #(
   parameter int unsigned Depth = 1024,
   localparam int unsigned Aw = $clog2(Depth),
