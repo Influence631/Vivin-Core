@@ -26,7 +26,6 @@ package vivin_pkg;
 
   typedef enum logic [1:0] {
     ALU_ADD_OP, //force add because some instructions dont encode alu op, but use add.
-    ALU_BRANCH_OP, //differentiate different branch types based of funct3
     ALU_ELABORATE_R, // for register instructions to differentiate add / sub using funct7
     ALU_ELABORATE_IMM // for immediate instructions, funct 7 used to differentiate shifts
   } alu_op_hint_e ; //this is a hint for alu_decoder, provided by the main decoder along with funct3 and funct7
@@ -44,15 +43,13 @@ package vivin_pkg;
   } op_a_sel_e;
   
   typedef enum logic {
-    OP_B_REG_B,
+    OP_B_RS2,
     OP_B_IMM
   } op_b_sel_e;
   
   typedef enum logic [1:0] {
-    PC4,
-    PC_JAL,
-    PC_JALR,
-    PC_BRANCH
+    PC4, //default
+    PC_TARGET //jal, branch, jalr
   } pc_sel_e;
 
   typedef enum logic [3:0] {
@@ -68,14 +65,15 @@ package vivin_pkg;
     ALU_SRA
   } alu_op_e;
 
+  /*
   typedef enum logic [2:0] {
-    BEQ,
-    BNE,
-    BLT,
-    BGE,
-    BLTU,
-    BGEU
+    BEQ = 3'b000,
+    BNE = 3'b001,
+    BLT = 3'b100,
+    BGE = 3'b101,
+    BLTU = 3'b110,
+    BGEU = 3'b111
   } func3_b_e;
-
+  */
 
 endpackage

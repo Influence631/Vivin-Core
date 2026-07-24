@@ -2,24 +2,13 @@
 
 module alu_decoder (
   input vivin_pkg::alu_op_hint_e alu_op_hint_i,
-  input logic [2:0] func3,
-  input logic [6:0] func7,
+  input logic [2:0] funct3,
+  input logic [6:0] funct7,
 
   output vivin_pkg::alu_op_e alu_op_o
 );
   import vivin_pkg::*;
 
-  function automatic alu_op_e decode_branch (func3_b_e funct3);
-    unique case (funct3)
-      BEQ : return ALU_SUB;
-      BNE : return ALU_SUB;
-      BLT : return ALU_SLT;
-      BLTU : return ALU_SLTU;
-      BGE : return ALU_SLT;
-      BGEU : return ALU_SLTU;
-      default : return ALU_SUB;
-    endcase
-  endfunction
 
   function automatic alu_op_e decode_arith(logic is_reg, logic [2:0] funct3, logic[6:0] funct7);
     unique case (funct3)
@@ -40,9 +29,8 @@ module alu_decoder (
     alu_op_o = ALU_ADD;
     unique case (alu_op_hint_i)
       ALU_ADD_OP : alu_op_o = ALU_ADD;
-      ALU_BRANCH_OP : alu_op_o = decode_branch(func3_b_e'(func3));
-      ALU_ELABORATE_R : alu_op_o = decode_arith(1'b1, func3, func7);
-      ALU_ELABORATE_IMM : alu_op_o = decode_arith(1'b0, func3, func7);
+      ALU_ELABORATE_R : alu_op_o = decode_arith(1'b1, funct3, funct7);
+      ALU_ELABORATE_IMM : alu_op_o = decode_arith(1'b0, funct3, funct7);
     default: ;
     endcase
   end
