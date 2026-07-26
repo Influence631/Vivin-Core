@@ -12,102 +12,127 @@ module main_decoder (
   output vivin_pkg::imm_sel_e imm_sel_o,
   output vivin_pkg::op_a_sel_e op_a_sel_o, 
   output vivin_pkg::op_b_sel_e op_b_sel_o,
-  output vivin_pkg::alu_op_e alu_control_o,
+  output vivin_pkg::alu_op_e alu_op_o,
   output vivin_pkg::result_sel_e result_sel_o,
+  
   output logic reg_write_o,
-  output logic mem_write_o
+  output logic mem_write_o,
+  
+  output logic halt_o,
+  output logic branch_o,
+  output logic jump_o
 );
   import vivin_pkg::*; 
 
-
   alu_op_hint_e alu_op_hint;
-  logic branch;
-  logic jal;
-  //this module will instantiate alu decoder, pass alu op hint to it from the instruction opcode
-  //this unit also sets all the Controll signals needed.
-  //use automatic functions for cleaner code
 
-  //todo:
-  //1.  define the sources of immgen
-  //2. define all the result sources
-  //3. reinterpret branch results 
-  //4. only the pc sel is runtime dependant, the rest are static.
-
-  //1. decode instructions 
+  // decode instructions 
   always_comb begin
     imm_sel_o = IMM_I;
     mem_write_o = 1'b0;
     reg_write_o = 1'b0;
-    branch = 1'b0;
+    branch_o = 1'b0;
+    jump_o = 1'b0;
+    halt_o = 1'b0;
 
+    result_sel_o = ALU_RES;
     op_a_sel_o = OP_A_RS1;
     op_b_sel_o = OP_B_RS2;
 
     alu_op_hint = ALU_ADD_OP;
   
-    //jal = 1'b0;
-
     unique case (opcode_i)
       OPCODE_LOAD : begin 
         alu_op_hint = ALU_ADD_OP;
+
         reg_write_o = 1'b1;
+        result_sel_o = MEM_RES;
+
         op_b_sel_o = OP_B_IMM;
-        //result_sel_o = MEM_RES;
+        imm_sel_o = IMM_I;
       end
       OPCODE_STORE : begin 
         alu_op_hint = ALU_ADD_OP;
+
         mem_write_o = 1'b1;
+        
         op_b_sel_o = OP_B_IMM;
+        imm_sel_o = IMM_S;
       end
       OPCODE_BRANCH : begin 
-        alu_op_hint = ALU_BRANCH_OP;
-        branch = 1'b1;
+        alu_op_hint = ALU_ADD_OP; // alu performs the target calculation, while the comparator outputs the result
+        
         op_b_sel_o = OP_B_IMM;
         imm_sel_o = IMM_B;
+
+        branch_o = 1'b1;
       end
       OPCODE_OP_IMM : begin 
         alu_op_hint = ALU_ELABORATE_IMM;
-        op_b_sel_o = OP_B_IMM;
-      end
-      OPCODE_AUIPC : begin 
-        alu_op_hint = ALU_ADD_OP;
-        op_a_sel_o = OP_A_PC;
-        op_b_sel_o = OP_B_IMM;
-
-        //imm_sel_o = IMM
-      end
-      OPCODE_OP : begin
-        alu_op_hint = ALU_ELABORATE_R;
+        
         reg_write_o = 1'b1;
-        op_b_sel_o = OP_B_RS2;
+        result_sel_o = ALU_RES;
+
+        op_b_sel_o = OP_B_IMM;
+        imm_sel_o = IMM_I;
       end
       OPCODE_LUI : begin
         alu_op_hint = ALU_ADD_OP;
+
         reg_write_o = 1'b1;
+        result_sel_o = ALU_RES;
+
         op_a_sel_o = OP_A_ZERO;
         op_b_sel_o = OP_B_IMM;
+        imm_sel_o = IMM_U;
+      end
+      OPCODE_AUIPC : begin 
+        alu_op_hint = ALU_ADD_OP;
+
+        reg_write_o = 1'b1;
+        result_sel_o = ALU_RES; 
+
+        op_a_sel_o = OP_A_PC;
+        op_b_sel_o = OP_B_IMM;
+        imm_sel_o = IMM_U;
+      end
+      OPCODE_OP : begin
+        alu_op_hint = ALU_ELABORATE_R;
+
+        reg_write_o = 1'b1;
+        result_sel_o = ALU_RES;
       end
       OPCODE_JAL : begin 
         alu_op_hint = ALU_ADD_OP;
+
         reg_write_o = 1'b1;
-        //result_sel_o = ALU_RES; // the JAL passes PC as reg A
-        op_a_sel_o = OP_A_PC;
+        result_sel_o = PC4_RES;
+        
+        op_a_sel_o = OP_A_PC;  // the JAL passes PC as reg A
+        op_b_sel_o = OP_B_IMM;
+        imm_sel_o = IMM_J;
+
+        jump_o = 1'b1;
       end
       OPCODE_JALR : begin
         alu_op_hint = ALU_ADD_OP;
-        //pc_sel_o = PC_JALR;
-        op_b_sel_o = OP_B_IMM;
+
         reg_write_o = 1'b1;
-        //result_sel_o = PC4_RES;
+        result_sel_o = PC4_RES;
+
+        op_b_sel_o = OP_B_IMM;
+        imm_sel_o = IMM_I;
+
+        jump_o = 1'b1;
       end
-      // OPCODE_SYSTEM : begin 
-      //   //alu_op_hint = ALU_ADD_OP
-      //   //defaults to NOP atm, but need to add halt for ecall and ebreak
-      // end
-      // OPCODE_MISC_MEM : begin 
-      //   //alu_op_hint = ALU_ADD_OP
-      //   //this defaults to NOP, but later can add zicsr extension.
-      // end
+      OPCODE_MISC_MEM : begin //fence
+        //here can later expand to support fence and zicsr instructions,
+        //but currently this default to a NOP, which is fine for single-cycle.
+      end
+      OPCODE_SYSTEM : begin
+        halt_o = 1'b1;
+        //halt on ecall and ebreak by not driving the pc, controlled by the halt_o;
+      end
       default : ;
     endcase
   end
@@ -117,6 +142,6 @@ module main_decoder (
     .alu_op_hint_i(alu_op_hint),
     .funct3(funct3),
     .funct7(funct7),
-    .alu_op_o(alu_control_o)
+    .alu_op_o(alu_op_o)
   );
 endmodule

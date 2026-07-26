@@ -47,33 +47,22 @@ package vivin_pkg;
     OP_B_IMM
   } op_b_sel_e;
   
-  typedef enum logic [1:0] {
+  typedef enum logic {
     PC4, //default
     PC_TARGET //jal, branch, jalr
   } pc_sel_e;
 
   typedef enum logic [3:0] {
-    ALU_ADD,
-    ALU_SUB,
-    ALU_SLT,
-    ALU_SLTU,
-    ALU_AND,
-    ALU_OR,
-    ALU_XOR,
-    ALU_SLL,
-    ALU_SRL,
-    ALU_SRA
+    ALU_ADD = 4'd0,
+    ALU_SUB = 4'd1,
+    ALU_SLT = 4'd2,
+    ALU_SLTU = 4'd3,
+    ALU_AND = 4'd4,
+    ALU_OR = 4'd5,
+    ALU_XOR = 4'd6,
+    ALU_SLL = 4'd7,
+    ALU_SRL = 4'd8,
+    ALU_SRA = 4'd9
   } alu_op_e;
-
-  /*
-  typedef enum logic [2:0] {
-    BEQ = 3'b000,
-    BNE = 3'b001,
-    BLT = 3'b100,
-    BGE = 3'b101,
-    BLTU = 3'b110,
-    BGEU = 3'b111
-  } func3_b_e;
-  */
 
 endpackage
