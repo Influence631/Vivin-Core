@@ -230,4 +230,24 @@ async def test(dut) :
             assert control == exp_control, f"\nEXPECTED CONTROL for command {mnemonic}\n\n {exp_control}, \n\n RECEIVED CONTROL : \n\n {control}"
             #match the alu_op separately against the hex file.
             assert alu_op == exp_alu_op, f"exp alu_op {exp_alu_op.name}, got {ALU_OP(alu_op).name}"
+
+
+#every opcode outside the 11 legal ones must decode to halt
+@cocotb.test()
+async def test_illegal_opcodes(dut) :
+    legal_opcodes = set(mnem_opcode_map.values())
+
+    for opcode in range(128) :
+        if opcode in legal_opcodes :
+            continue
+
+        dut.opcode_i.value = opcode
+        dut.funct3.value = random.getrandbits(3)
+        dut.funct7.value = random.getrandbits(7)
+
+        await timer
+
+        assert int(dut.halt_o.value) == 1, f"halt_o not asserted for illegal opcode {opcode:07b}"
+        assert int(dut.reg_write_o.value) == 0, f"reg_write_o asserted for illegal opcode {opcode:07b}"
+        assert int(dut.mem_write_o.value) == 0, f"mem_write_o asserted for illegal opcode {opcode:07b}"
             

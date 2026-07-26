@@ -134,7 +134,7 @@ module main_decoder (
         halt_o = 1'b1;
         //halt on ecall and ebreak by not driving the pc, controlled by the halt_o;
       end
-      default : ;
+      default : halt_o = 1'b1;
     endcase
   end
 
