@@ -62,6 +62,7 @@ module main_decoder (
       OPCODE_BRANCH : begin 
         alu_op_hint = ALU_ADD_OP; // alu performs the target calculation, while the comparator outputs the result
         
+        op_a_sel_o = OP_A_PC;
         op_b_sel_o = OP_B_IMM;
         imm_sel_o = IMM_B;
 

@@ -160,7 +160,7 @@ opcode_to_control_sig = {
     #opcode_jalr
     0b1100111 : ControlSignals(reg_write=1, jump=1, op_b_sel=OP_B_SEL.OP_B_IMM, imm_sel=ImmSel.IMM_I, result_sel=ResSel.PC4_RES),
     #opcode_branch
-    0b1100011 : ControlSignals(branch=1, op_b_sel=OP_B_SEL.OP_B_IMM, imm_sel=ImmSel.IMM_B),
+    0b1100011 : ControlSignals(branch=1, op_a_sel=OP_A_SEL.OP_A_PC, op_b_sel=OP_B_SEL.OP_B_IMM, imm_sel=ImmSel.IMM_B),
     #opcode_load
     0b0000011 : ControlSignals(reg_write=1, op_b_sel=OP_B_SEL.OP_B_IMM, imm_sel=ImmSel.IMM_I, result_sel=ResSel.MEM_RES),
     #opcode_store
