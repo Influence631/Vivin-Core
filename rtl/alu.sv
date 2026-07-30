@@ -2,8 +2,8 @@
 
 module alu (
   input vivin_pkg::alu_op_e operator_i,
-  input logic [31:0] operand_a_i,
-  input logic [31:0] operand_b_i,
+  input wire logic [31:0] operand_a_i,
+  input wire logic [31:0] operand_b_i,
   
   output logic [31:0] result_o
 );
