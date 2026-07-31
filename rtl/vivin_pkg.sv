@@ -65,4 +65,10 @@ package vivin_pkg;
     ALU_SRA = 4'd9
   } alu_op_e;
 
+  typedef enum logic [1:0] {
+    BYTE = 2'b00,
+    HALF = 2'b01,
+    WORD = 2'b10
+  } lsu_size_e;
+
 endpackage

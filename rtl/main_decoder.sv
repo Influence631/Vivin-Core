@@ -20,7 +20,9 @@ module main_decoder (
   
   output logic halt_o,
   output logic branch_o,
-  output logic jump_o
+  output logic jump_o,
+  output logic is_load_o,
+  output logic is_store_o
 );
   import vivin_pkg::*; 
 
@@ -34,15 +36,15 @@ module main_decoder (
     imm_sel_o = IMM_I;
     mem_write_o = 1'b0;
     reg_write_o = 1'b0;
-    branch_o = 1'b0;
-    jump_o = 1'b0;
+    
+    {branch_o, jump_o, is_load_o, is_store_o} = 'b0;
     
     result_sel_o = ALU_RES;
     op_a_sel_o = OP_A_RS1;
     op_b_sel_o = OP_B_RS2;
 
     alu_op_hint = ALU_ADD_OP;
-
+    
     {illegal_opcode, illegal_funct, sys_halt} = 'b0;
   
     unique case (opcode_i)
@@ -55,6 +57,7 @@ module main_decoder (
         op_b_sel_o = OP_B_IMM;
         imm_sel_o = IMM_I;
 
+        is_load_o = 1'b1; 
         illegal_funct = (funct3 inside {3'b011, 3'b110, 3'b111});
       end
       OPCODE_STORE : begin 
@@ -65,6 +68,7 @@ module main_decoder (
         op_b_sel_o = OP_B_IMM;
         imm_sel_o = IMM_S;
 
+        is_store_o = 1'b1;
         illegal_funct = !(funct3 inside {3'b000, 3'b001, 3'b010});
       end
       OPCODE_BRANCH : begin 
