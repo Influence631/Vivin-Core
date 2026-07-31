@@ -5,10 +5,10 @@ module alu_decoder (
   input wire logic [2:0] funct3,
   input wire logic [6:0] funct7,
 
-  output vivin_pkg::alu_op_e alu_op_o
+  output vivin_pkg::alu_op_e alu_op_o,
+  output logic illegal_funct_o
 );
   import vivin_pkg::*;
-
 
   function automatic alu_op_e decode_arith(logic is_reg, logic [2:0] funct3, logic[6:0] funct7);
     unique case (funct3)
@@ -24,13 +24,29 @@ module alu_decoder (
     endcase
   endfunction
   
+  function automatic logic funct7_legal(is_reg, logic [2:0] funct3, logic [6:0] funct7);
+    unique case (funct3)
+      3'b000: return is_reg ? (funct7 inside {7'b0100000, 7'b0000000}) : 1'b1;
+      3'b001 : return funct7 == 7'b0000000;
+      3'b101 : return (funct7 inside {7'b0100000, 7'b0000000});
+      default : return is_reg ? (funct7 == 7'b0000000) : 1'b1;
+    endcase
+  endfunction
 
   always_comb begin
     alu_op_o = ALU_ADD;
+    illegal_funct_o = 1'b0;
+
     unique case (alu_op_hint_i)
       ALU_ADD_OP : alu_op_o = ALU_ADD;
-      ALU_ELABORATE_R : alu_op_o = decode_arith(1'b1, funct3, funct7);
-      ALU_ELABORATE_IMM : alu_op_o = decode_arith(1'b0, funct3, funct7);
+      ALU_ELABORATE_R : begin 
+        alu_op_o = decode_arith(1'b1, funct3, funct7);
+        illegal_funct_o = !funct7_legal(1'b1, funct3, funct7);
+      end
+      ALU_ELABORATE_IMM : begin
+        alu_op_o = decode_arith(1'b0, funct3, funct7);
+        illegal_funct_o = !funct7_legal(1'b0, funct3, funct7);
+      end
     default: ;
     endcase
   end

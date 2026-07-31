@@ -26,6 +26,9 @@ module main_decoder (
 
   alu_op_hint_e alu_op_hint;
 
+  logic illegal_alu_funct, sys_halt, illegal_opcode, illegal_funct;
+
+  assign halt_o = sys_halt | illegal_alu_funct | illegal_funct | illegal_opcode; 
   // decode instructions 
   always_comb begin
     imm_sel_o = IMM_I;
@@ -33,13 +36,14 @@ module main_decoder (
     reg_write_o = 1'b0;
     branch_o = 1'b0;
     jump_o = 1'b0;
-    halt_o = 1'b0;
-
+    
     result_sel_o = ALU_RES;
     op_a_sel_o = OP_A_RS1;
     op_b_sel_o = OP_B_RS2;
 
     alu_op_hint = ALU_ADD_OP;
+
+    {illegal_opcode, illegal_funct, sys_halt} = 'b0;
   
     unique case (opcode_i)
       OPCODE_LOAD : begin 
@@ -50,6 +54,8 @@ module main_decoder (
 
         op_b_sel_o = OP_B_IMM;
         imm_sel_o = IMM_I;
+
+        illegal_funct = (funct3 inside {3'b011, 3'b110, 3'b111});
       end
       OPCODE_STORE : begin 
         alu_op_hint = ALU_ADD_OP;
@@ -58,6 +64,8 @@ module main_decoder (
         
         op_b_sel_o = OP_B_IMM;
         imm_sel_o = IMM_S;
+
+        illegal_funct = !(funct3 inside {3'b000, 3'b001, 3'b010});
       end
       OPCODE_BRANCH : begin 
         alu_op_hint = ALU_ADD_OP; // alu performs the target calculation, while the comparator outputs the result
@@ -67,6 +75,7 @@ module main_decoder (
         imm_sel_o = IMM_B;
 
         branch_o = 1'b1;
+        illegal_funct = (funct3 inside {3'b010, 3'b011});
       end
       OPCODE_OP_IMM : begin 
         alu_op_hint = ALU_ELABORATE_IMM;
@@ -125,24 +134,27 @@ module main_decoder (
         imm_sel_o = IMM_I;
 
         jump_o = 1'b1;
+        illegal_funct = !(funct3 == 3'b000); 
       end
       OPCODE_MISC_MEM : begin //fence
         //here can later expand to support fence and zicsr instructions,
         //but currently this default to a NOP, which is fine for single-cycle.
+        illegal_funct = !(funct3 == 3'b000);
       end
       OPCODE_SYSTEM : begin
-        halt_o = 1'b1;
+        illegal_funct = !(funct3 == 3'b000);
+        sys_halt = 1'b1;
         //halt on ecall and ebreak by not driving the pc, controlled by the halt_o;
       end
-      default : halt_o = 1'b1;
+      default : illegal_opcode = 1'b1; 
     endcase
   end
-
 
   alu_decoder alu_decoder_u(
     .alu_op_hint_i(alu_op_hint),
     .funct3(funct3),
     .funct7(funct7),
-    .alu_op_o(alu_op_o)
+    .alu_op_o(alu_op_o),
+    .illegal_funct_o(illegal_alu_funct)
   );
 endmodule
