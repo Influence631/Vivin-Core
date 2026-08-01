@@ -29,13 +29,9 @@ module memory #(
 
   always_ff @(posedge clk_i) begin 
     if (we_i) begin
-      if (addr_i[1:0] != 2'b00) begin 
-        $fatal(1, "STOPPING EXECUTION, WRITING TO MISALIGNED ADDRESS %h", addr_i);
-      end else begin
-        for (int i = 0; i < 4; i++) begin 
-          if (be_i[i]) begin
-            mem[addr_i[Aw+1:2]][(i * 8)+:8] <= data_i[(i*8)+:8];
-          end
+      for (int i = 0; i < 4; i++) begin 
+        if (be_i[i]) begin
+          mem[addr_i[Aw+1:2]][(i * 8)+:8] <= data_i[(i*8)+:8];
         end
       end
     end

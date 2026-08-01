@@ -16,7 +16,6 @@ module main_decoder (
   output vivin_pkg::result_sel_e result_sel_o,
   
   output logic reg_write_o,
-  output logic mem_write_o,
   
   output logic halt_o,
   output logic branch_o,
@@ -34,7 +33,6 @@ module main_decoder (
   // decode instructions 
   always_comb begin
     imm_sel_o = IMM_I;
-    mem_write_o = 1'b0;
     reg_write_o = 1'b0;
     
     {branch_o, jump_o, is_load_o, is_store_o} = 'b0;
@@ -62,8 +60,6 @@ module main_decoder (
       end
       OPCODE_STORE : begin 
         alu_op_hint = ALU_ADD_OP;
-
-        mem_write_o = 1'b1;
         
         op_b_sel_o = OP_B_IMM;
         imm_sel_o = IMM_S;
