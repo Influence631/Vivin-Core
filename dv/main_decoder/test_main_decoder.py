@@ -135,7 +135,7 @@ typedef enum logic {
 
 @dataclass(slots=True)
 class ControlSignals :
-    mem_write : int = 0
+    is_store : int = 0
     reg_write : int = 0
 
     op_a_sel : OP_A_SEL = OP_A_SEL.OP_A_RS1  #rs1  
@@ -164,7 +164,7 @@ opcode_to_control_sig = {
     #opcode_load
     0b0000011 : ControlSignals(reg_write=1, op_b_sel=OP_B_SEL.OP_B_IMM, imm_sel=ImmSel.IMM_I, result_sel=ResSel.MEM_RES),
     #opcode_store
-    0b0100011 : ControlSignals(mem_write=1, op_b_sel=OP_B_SEL.OP_B_IMM, imm_sel=ImmSel.IMM_S),
+    0b0100011 : ControlSignals(is_store=1, op_b_sel=OP_B_SEL.OP_B_IMM, imm_sel=ImmSel.IMM_S),
     #opcode_imm_op
     0b0010011 : ControlSignals(reg_write=1, op_b_sel=OP_B_SEL.OP_B_IMM, imm_sel=ImmSel.IMM_I),
     #opcode_op
@@ -201,7 +201,7 @@ async def test(dut) :
 
             alu_op = ALU_OP(dut.alu_op_o.value)
             reg_write = int(dut.reg_write_o.value)
-            mem_write = int(dut.mem_write_o.value)
+            is_store = int(dut.is_store_o.value)
             imm_sel = ImmSel(dut.imm_sel_o.value)
             op_b_sel = OP_B_SEL(dut.op_b_sel_o.value)
             op_a_sel = OP_A_SEL(dut.op_a_sel_o.value)
@@ -212,7 +212,7 @@ async def test(dut) :
 
             control = ControlSignals(
                 reg_write=reg_write,
-                mem_write=mem_write,
+                is_store=is_store,
                 op_a_sel=op_a_sel,
                 op_b_sel=op_b_sel,
                 alu_op=alu_op,
@@ -249,5 +249,5 @@ async def test_illegal_opcodes(dut) :
 
         assert int(dut.halt_o.value) == 1, f"halt_o not asserted for illegal opcode {opcode:07b}"
         assert int(dut.reg_write_o.value) == 0, f"reg_write_o asserted for illegal opcode {opcode:07b}"
-        assert int(dut.mem_write_o.value) == 0, f"mem_write_o asserted for illegal opcode {opcode:07b}"
+        assert int(dut.is_store_o.value) == 0, f"is_store_o asserted for illegal opcode {opcode:07b}"
             
