@@ -1,10 +1,9 @@
 `default_nettype none
 
 module load_store_unit (
-  //funct3 {unsigned, size} : BYTE, HW, W
   input vivin_pkg::lsu_size_e size_i,
   input wire logic is_signed_i,
-  input wire logic [1:0] addr_offset_i, //contains the address addr_offset_i [1:0]
+  input wire logic [1:0] addr_offset_i,
   
   input wire logic [31:0] mem_rdata_i,
   input wire logic [31:0] store_wdata_i,
@@ -20,7 +19,8 @@ module load_store_unit (
   logic [31:0] shifted;
   
   assign mem_wdata_o = store_wdata_i << {addr_offset_i, 3'b000};
-  // handle stores
+  
+  // handle stores + misalignment
   always_comb begin 
     misaligned_o = 1'b0;
     mem_be_o = '0;

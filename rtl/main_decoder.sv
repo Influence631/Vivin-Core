@@ -5,8 +5,8 @@
 // make ports branch, jump, halt for the top level to be able to set the pc_next with pc_redirect
 module main_decoder (
   input vivin_pkg::opcode_e opcode_i,
-  input wire logic [2:0] funct3,
-  input wire logic [6:0] funct7,
+  input wire logic [2:0] funct3_i,
+  input wire logic [6:0] funct7_i,
   
   //control signals
   output vivin_pkg::imm_sel_e imm_sel_o,
@@ -14,10 +14,9 @@ module main_decoder (
   output vivin_pkg::op_b_sel_e op_b_sel_o,
   output vivin_pkg::alu_op_e alu_op_o,
   output vivin_pkg::result_sel_e result_sel_o,
-  
   output logic reg_write_o,
   
-  output logic halt_o,
+  output logic decoder_halt_o,
   output logic branch_o,
   output logic jump_o,
   output logic is_load_o,
@@ -29,7 +28,7 @@ module main_decoder (
 
   logic illegal_alu_funct, sys_halt, illegal_opcode, illegal_funct;
 
-  assign halt_o = sys_halt | illegal_alu_funct | illegal_funct | illegal_opcode; 
+  assign decoder_halt_o = sys_halt | illegal_alu_funct | illegal_funct | illegal_opcode; 
   // decode instructions 
   always_comb begin
     imm_sel_o = IMM_I;
@@ -56,7 +55,7 @@ module main_decoder (
         imm_sel_o = IMM_I;
 
         is_load_o = 1'b1; 
-        illegal_funct = (funct3 inside {3'b011, 3'b110, 3'b111});
+        illegal_funct = (funct3_i inside {3'b011, 3'b110, 3'b111});
       end
       OPCODE_STORE : begin 
         alu_op_hint = ALU_ADD_OP;
@@ -65,7 +64,7 @@ module main_decoder (
         imm_sel_o = IMM_S;
 
         is_store_o = 1'b1;
-        illegal_funct = !(funct3 inside {3'b000, 3'b001, 3'b010});
+        illegal_funct = !(funct3_i inside {3'b000, 3'b001, 3'b010});
       end
       OPCODE_BRANCH : begin 
         alu_op_hint = ALU_ADD_OP; // alu performs the target calculation, while the comparator outputs the result
@@ -75,7 +74,7 @@ module main_decoder (
         imm_sel_o = IMM_B;
 
         branch_o = 1'b1;
-        illegal_funct = (funct3 inside {3'b010, 3'b011});
+        illegal_funct = (funct3_i inside {3'b010, 3'b011});
       end
       OPCODE_OP_IMM : begin 
         alu_op_hint = ALU_ELABORATE_IMM;
@@ -134,17 +133,17 @@ module main_decoder (
         imm_sel_o = IMM_I;
 
         jump_o = 1'b1;
-        illegal_funct = !(funct3 == 3'b000); 
+        illegal_funct = !(funct3_i == 3'b000); 
       end
       OPCODE_MISC_MEM : begin //fence
         //here can later expand to support fence and zicsr instructions,
         //but currently this default to a NOP, which is fine for single-cycle.
-        illegal_funct = !(funct3 == 3'b000);
+        illegal_funct = !(funct3_i == 3'b000);
       end
       OPCODE_SYSTEM : begin
-        illegal_funct = !(funct3 == 3'b000);
+        illegal_funct = !(funct3_i == 3'b000);
         sys_halt = 1'b1;
-        //halt on ecall and ebreak by not driving the pc, controlled by the halt_o;
+        //halt on ecall and ebreak by not driving the pc, controlled by the decoder_halt_o;
       end
       default : illegal_opcode = 1'b1; 
     endcase
@@ -152,8 +151,8 @@ module main_decoder (
 
   alu_decoder alu_decoder_u(
     .alu_op_hint_i(alu_op_hint),
-    .funct3(funct3),
-    .funct7(funct7),
+    .funct3(funct3_i),
+    .funct7(funct7_i),
     .alu_op_o(alu_op_o),
     .illegal_funct_o(illegal_alu_funct)
   );
