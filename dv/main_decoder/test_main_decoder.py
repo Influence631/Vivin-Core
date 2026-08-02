@@ -194,8 +194,8 @@ async def test(dut) :
             exp_alu_op = ALU_OP[exp_alu_op]
 
             dut.opcode_i.value = opcode
-            dut.funct3.value = funct3
-            dut.funct7.value = funct7
+            dut.funct3_i.value = funct3
+            dut.funct7_i.value = funct7
 
             await timer
 
@@ -208,7 +208,7 @@ async def test(dut) :
             res_sel = ResSel(dut.result_sel_o.value)
             branch = int(dut.branch_o.value)
             jump = int(dut.jump_o.value)
-            halt = int(dut.halt_o.value)
+            halt = int(dut.decoder_halt_o.value)
 
             control = ControlSignals(
                 reg_write=reg_write,
@@ -242,12 +242,12 @@ async def test_illegal_opcodes(dut) :
             continue
 
         dut.opcode_i.value = opcode
-        dut.funct3.value = random.getrandbits(3)
-        dut.funct7.value = random.getrandbits(7)
+        dut.funct3_i.value = random.getrandbits(3)
+        dut.funct7_i.value = random.getrandbits(7)
 
         await timer
 
-        assert int(dut.halt_o.value) == 1, f"halt_o not asserted for illegal opcode {opcode:07b}"
+        assert int(dut.decoder_halt_o.value) == 1, f"decoder_halt_o not asserted for illegal opcode {opcode:07b}"
         assert int(dut.reg_write_o.value) == 0, f"reg_write_o asserted for illegal opcode {opcode:07b}"
         assert int(dut.is_store_o.value) == 0, f"is_store_o asserted for illegal opcode {opcode:07b}"
             
