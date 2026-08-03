@@ -19,3 +19,5 @@ verible.filelist
 *__pycache__
 sim_build
 results.xml
+#makefile generates the imemory and dmemory.hex
+dv/core/*.hex 

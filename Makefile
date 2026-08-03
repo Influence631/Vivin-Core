@@ -14,7 +14,9 @@
 # =============================================================================
 
 RTL_DIR    ?= rtl
-TOP        ?= vivin_core_top       # top module name used by `make elab`
+# top module name used by `make elab` (keep comments off this line: make
+# preserves the whitespace before a trailing `#`, which would corrupt $(TOP))
+TOP        ?= vivin_core_top
 VERILATOR  ?= verilator
 VFLAGS     ?= -Wall -Wno-EOFNEWLINE   # override to relax further, e.g. add -Wno-UNUSEDSIGNAL
 
