@@ -5,7 +5,7 @@ import logging
 from enum import IntEnum
 from dataclasses import dataclass, field
 
-log = logging.getLogger("tb.imm_gen")
+log = logging.getLogger("tb.load_store_unit")
 log.setLevel(logging.INFO)
 timer = Timer(1, "ns")
 
