@@ -1,8 +1,8 @@
 `default_nettype none
 
 module vivin_core_top (
-  logic clk_i,
-  logic rst_ni
+  input wire logic clk_i,
+  input wire logic rst_ni
 );
   import vivin_pkg::*;
   localparam int unsigned MemDepth = 1024;

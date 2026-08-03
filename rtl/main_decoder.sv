@@ -151,8 +151,8 @@ module main_decoder (
 
   alu_decoder alu_decoder_u(
     .alu_op_hint_i(alu_op_hint),
-    .funct3(funct3_i),
-    .funct7(funct7_i),
+    .funct3_i(funct3_i),
+    .funct7_i(funct7_i),
     .alu_op_o(alu_op_o),
     .illegal_funct_o(illegal_alu_funct)
   );
