@@ -46,11 +46,6 @@ package vivin_pkg;
     OP_B_RS2,
     OP_B_IMM
   } op_b_sel_e;
-  
-  typedef enum logic {
-    PC4, //default
-    PC_TARGET //jal, branch, jalr
-  } pc_sel_e;
 
   typedef enum logic [3:0] {
     ALU_ADD = 4'd0,
