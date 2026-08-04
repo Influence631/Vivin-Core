@@ -47,6 +47,11 @@ module vivin_core_top (
   logic [31:0] mem_result;
   logic [31:0] imm;
 
+  logic [4:0] rd, rs1, rs2;
+  assign rd = instr[11:7];
+  assign rs1 = instr[19:15];
+  assign rs2 = instr[24:20];
+
   assign redirect = (branch & taken) || jump;
   assign halt = decoder_halt || ((load | store) & lsu_misaligned) || pc_misaligned;
 
@@ -147,9 +152,9 @@ module vivin_core_top (
     .clk_i(clk_i),
     .rst_ni(rst_ni),
     .w_en_i(reg_we),
-    .r1_addr_i(instr[19:15]),
-    .r2_addr_i(instr[24:20]),
-    .w_addr_i(instr[11:7]),
+    .r1_addr_i(rs1),
+    .r2_addr_i(rs2),
+    .w_addr_i(rd),
     .w_data_i(result),
     .r1_data_o(rs1_data),
     .r2_data_o(rs2_data)
@@ -175,8 +180,8 @@ module vivin_core_top (
 
   branch_comparator branch_comp_u (
     .funct3_i(funct3),
-    .rs1_i(rs1_data),
-    .rs2_i(rs2_data),
+    .rs1_data_i(rs1_data),
+    .rs2_data_i(rs2_data),
     .taken_o(taken)
   );
 
