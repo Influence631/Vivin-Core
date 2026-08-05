@@ -26,6 +26,13 @@ fresh:
 	$(MAKE) clean
 	$(MAKE) sim
 
+programs/%.hex: programs/%.s
+	riscv64-unknown-elf-as -march=rv32i -mabi=ilp32 -o $*.o $<
+	riscv64-unknown-elf-ld -m elf32lriscv -Ttext=0 -o $*.elf $*.o
+	riscv64-unknown-elf-objcopy -O binary $*.elf $*.bin
+	od -An -tx4 -w4 -v $*.bin | tr -d ' ' > $@
+	$(RM) $*.o $*.elf $*.bin
+
 .PHONY: imemory.hex surfer
 imemory.hex: programs/$(PROG).hex
 	cp -f $< $@

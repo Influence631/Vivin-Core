@@ -20,6 +20,6 @@ verible.filelist
 sim_build
 results.xml
 .surfer
-.ron
+*.ron
 #makefile generates the imemory and dmemory.hex
 dv/core/*.hex 
