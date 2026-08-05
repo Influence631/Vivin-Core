@@ -143,7 +143,8 @@ class ControlSignals :
 
     alu_op : ALU_OP = ALU_OP.ALU_ADD #add
 
-    halt : int = 0
+    sys_halt : int = 0
+    #illegal_instr : int = 0
     branch : int = 0
     jump : int = 0
 
@@ -172,7 +173,7 @@ opcode_to_control_sig = {
     #opcode_misc_mem (fence = NOP in single-cycle)
     0b0001111 : ControlSignals(),
     #opcode_system (ecall/ebreak -> halt)
-    0b1110011 : ControlSignals(halt=1),
+    0b1110011 : ControlSignals(sys_halt=1),
 }
 
 
@@ -208,7 +209,8 @@ async def test(dut) :
             res_sel = ResSel(dut.result_sel_o.value)
             branch = int(dut.branch_o.value)
             jump = int(dut.jump_o.value)
-            halt = int(dut.decoder_halt_o.value)
+            sys_halt = int(dut.sys_halt_o.value)
+            #illegal_instr = int(dut.illegal_instr_o.value)
 
             control = ControlSignals(
                 reg_write=reg_write,
@@ -216,7 +218,7 @@ async def test(dut) :
                 op_a_sel=op_a_sel,
                 op_b_sel=op_b_sel,
                 alu_op=alu_op,
-                halt=halt,
+                sys_halt=sys_halt,
                 branch=branch,
                 jump=jump,
                 result_sel=res_sel,
@@ -247,7 +249,7 @@ async def test_illegal_opcodes(dut) :
 
         await timer
 
-        assert int(dut.decoder_halt_o.value) == 1, f"decoder_halt_o not asserted for illegal opcode {opcode:07b}"
+        assert int(dut.illegal_instr_o.value) == 1, f"decoder_halt_o not asserted for illegal opcode {opcode:07b}"
         assert int(dut.reg_write_o.value) == 0, f"reg_write_o asserted for illegal opcode {opcode:07b}"
         assert int(dut.is_store_o.value) == 0, f"is_store_o asserted for illegal opcode {opcode:07b}"
             

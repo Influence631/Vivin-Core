@@ -16,7 +16,8 @@ module main_decoder (
   output vivin_pkg::result_sel_e result_sel_o,
   output logic reg_write_o,
   
-  output logic decoder_halt_o,
+  output logic sys_halt_o,
+  output logic illegal_instr_o,
   output logic branch_o,
   output logic jump_o,
   output logic is_load_o,
@@ -26,9 +27,9 @@ module main_decoder (
 
   alu_op_hint_e alu_op_hint;
 
-  logic illegal_alu_funct, sys_halt, illegal_opcode, illegal_funct;
+  logic illegal_alu_funct, illegal_opcode, illegal_funct;
 
-  assign decoder_halt_o = sys_halt | illegal_alu_funct | illegal_funct | illegal_opcode; 
+  assign illegal_instr_o = illegal_alu_funct | illegal_funct | illegal_opcode; 
   // decode instructions 
   always_comb begin
     imm_sel_o = IMM_I;
@@ -42,7 +43,7 @@ module main_decoder (
 
     alu_op_hint = ALU_ADD_OP;
     
-    {illegal_opcode, illegal_funct, sys_halt} = 'b0;
+    {illegal_opcode, illegal_funct, sys_halt_o} = 'b0;
   
     unique case (opcode_i)
       OPCODE_LOAD : begin 
@@ -142,7 +143,7 @@ module main_decoder (
       end
       OPCODE_SYSTEM : begin
         illegal_funct = !(funct3_i == 3'b000);
-        sys_halt = 1'b1;
+        sys_halt_o = 1'b1;
         //halt on ecall and ebreak by not driving the pc, controlled by the decoder_halt_o;
       end
       default : illegal_opcode = 1'b1; 

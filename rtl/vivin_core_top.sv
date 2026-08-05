@@ -30,7 +30,8 @@ module vivin_core_top (
   logic reg_we;
   logic mem_we;
 
-  logic decoder_halt;
+  logic sys_halt;
+  logic illegal_instr;
   logic lsu_misaligned;
   logic halt;
   logic misaligned_store;
@@ -53,7 +54,7 @@ module vivin_core_top (
   assign rs2 = instr[24:20];
 
   assign redirect = (branch & taken) || jump;
-  assign halt = decoder_halt || ((load | store) & lsu_misaligned) || pc_misaligned;
+  assign halt = sys_halt || illegal_instr || ((load | store) & lsu_misaligned) || pc_misaligned;
 
   assign misaligned_load = load & lsu_misaligned;
   assign misaligned_store = store & lsu_misaligned;
@@ -117,7 +118,8 @@ module vivin_core_top (
     .alu_op_o(alu_op),
     .result_sel_o(result_sel),
     .reg_write_o(decoder_reg_we),
-    .decoder_halt_o(decoder_halt),
+    .sys_halt_o(sys_halt),
+    .illegal_instr_o(illegal_instr),
     .branch_o(branch),
     .jump_o(jump),
     .is_load_o(load),
