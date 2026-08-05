@@ -24,7 +24,7 @@ module alu_decoder (
     endcase
   endfunction
   
-  function automatic logic funct7_legal(is_reg, logic [2:0] funct3, logic [6:0] funct7);
+  function automatic logic funct7_legal(logic is_reg, logic [2:0] funct3, logic [6:0] funct7);
     unique case (funct3)
       3'b000: return is_reg ? (funct7 inside {7'b0100000, 7'b0000000}) : 1'b1;
       3'b001 : return funct7 == 7'b0000000;
